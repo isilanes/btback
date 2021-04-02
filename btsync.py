@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import argparse
+import subprocess as sp
 
 
 DEFAULT_CONF_DIR = os.path.join(os.environ["HOME"], ".btback")
@@ -60,13 +61,25 @@ class Sync:
         if self.dry_run:
             cmd.append("--dry-run")
 
+        cmd.append(f"--exclude-from={self.exclude}")
+        cmd.append(f"{self.source}/")
+        cmd.append(f"{self.destination}/")
+
         return cmd
-        #cmd = "rsync -rltuvh --progress --delete rpi:/backup/all/home/isilanes/ --exclude-from=up.exclude"
+
+    def run_command(self):
+        s = sp.Popen(self.command)
+        s.communicate()
 
     @property
     def exclude(self):
         fn = f"{self.element}.{self.direction}.exclude"
-        return os.path.join(self.conf_dir, fn)
+        path = os.path.join(self.conf_dir, fn)
+
+        if not os.path.isfile(path):
+            raise FileExistsError(f"Required exclude file '{path}' not found!")
+
+        return path
 
     @property
     def conf_dir(self):
@@ -90,18 +103,37 @@ class Sync:
         return "down"
 
     @property
+    def conf_path(self):
+        return os.path.join(self.conf_dir, self.CONF_FN)
+
+    @property
     def conf(self):
         if self._conf is None:
-            conf_path = os.path.join(self.conf_dir, self.CONF_FN)
-            with open(conf_path) as f:
+            with open(self.conf_path) as f:
                 self._conf = json.load(f)
 
         return self._conf
 
+    @property
+    def source(self):
+        src = self.conf.get("elements", {}).get(self.element, {}).get("src_dir")
+        if src is None:
+            raise KeyError(f"Configuration file '{self.conf_path}' has no source dir for element '{self.element}'")
+
+        return src
+
+    @property
+    def destination(self):
+        dest = self.conf.get("elements", {}).get(self.element, {}).get("dest_dir")
+        if dest is None:
+            raise KeyError(f"Configuration file '{self.conf_path}' has no destination dir for element '{self.element}'")
+
+        return self.conf["destination"] + dest
+
 
 def main(opts):
     sync = Sync(opts)
-    print(sync.command)
+    sync.run_command()
 
 
 if __name__ == "__main__":
