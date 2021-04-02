@@ -1,0 +1,8 @@
+.cache
+*.pyc
+__pycache__
+.dropbox-dist
+.steam
+.cinnamon/spices.cache
+.mozilla/firefox/*.default-release
+.thunderbird/*.default-release
