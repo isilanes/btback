@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import argparse
 
 
@@ -46,8 +47,11 @@ def parse_args(args=None):
 
 class Sync:
 
+    CONF_FN = "conf.json"
+
     def __init__(self, opts):
         self.opts = opts
+        self._conf = None
 
     @property
     def command(self):
@@ -61,7 +65,7 @@ class Sync:
 
     @property
     def exclude(self):
-        fn = f"{self.element}.{self.way}.exclude"
+        fn = f"{self.element}.{self.direction}.exclude"
         return os.path.join(self.conf_dir, fn)
 
     @property
@@ -77,13 +81,22 @@ class Sync:
         return self.opts.element
 
     @property
-    def way(self):
+    def direction(self):
         """Which way we are syncing, up or down."""
 
         if self.opts.up:
             return "up"
 
         return "down"
+
+    @property
+    def conf(self):
+        if self._conf is None:
+            conf_path = os.path.join(self.conf_dir, self.CONF_FN)
+            with open(conf_path) as f:
+                self._conf = json.load(f)
+
+        return self._conf
 
 
 def main(opts):
