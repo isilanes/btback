@@ -115,7 +115,7 @@ class Sync:
         return self._conf
 
     @property
-    def source(self):
+    def local(self):
         src = self.conf.get("elements", {}).get(self.element, {}).get("src_dir")
         if src is None:
             raise KeyError(f"Configuration file '{self.conf_path}' has no source dir for element '{self.element}'")
@@ -123,12 +123,26 @@ class Sync:
         return src
 
     @property
-    def destination(self):
+    def remote(self):
         dest = self.conf.get("elements", {}).get(self.element, {}).get("dest_dir")
         if dest is None:
             raise KeyError(f"Configuration file '{self.conf_path}' has no destination dir for element '{self.element}'")
 
         return self.conf["destination"] + dest
+
+    @property
+    def source(self):
+        if self.direction == "up":
+            return self.local
+
+        return self.remote
+
+    @property
+    def destination(self):
+        if self.direction == "up":
+            return self.remote
+
+        return self.local
 
 
 def main(opts):
