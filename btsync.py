@@ -27,6 +27,13 @@ def parse_args(args=None):
     )
 
     parser.add_argument(
+        "-d", "--delete",
+        help="Sync with deletion. Default: just sync additions.",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
         '--conf-dir',
         help=f"Configuration directory. Default: {DEFAULT_CONF_DIR}",
         type=str,
@@ -56,7 +63,10 @@ class Sync:
 
     @property
     def command(self):
-        cmd = ["rsync", "-rltuvh", "--progress", "--delete"]
+        cmd = ["rsync", "-rltuvh", "--progress"]
+
+        if self.delete:
+            cmd.append("--delete")
 
         if self.dry_run:
             cmd.append("--dry-run")
@@ -143,6 +153,11 @@ class Sync:
             return self.remote
 
         return self.local
+
+    @property
+    def delete(self) -> bool:
+        """Rsync with --delete, if True."""
+        return self.opts.delete
 
 
 def main(opts):
