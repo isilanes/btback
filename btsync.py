@@ -41,7 +41,8 @@ def parse_args(args=None):
     )
 
     parser.add_argument(
-        '--element',
+        'element',
+        nargs='?',
         help="Which element to sync. Default: home.",
         type=str,
         default="home",
