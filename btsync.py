@@ -73,6 +73,7 @@ class Sync:
             cmd.append("--dry-run")
 
         cmd.append(f"--exclude-from={self.exclude}")
+        cmd.append(f"--exclude-from={self.exclude_direction}")
         cmd.append(f"{self.source}/")
         cmd.append(f"{self.destination}/")
 
@@ -84,6 +85,16 @@ class Sync:
 
     @property
     def exclude(self):
+        fn = f"{self.element}.exclude"
+        path = os.path.join(self.conf_dir, fn)
+
+        if not os.path.isfile(path):
+            raise FileExistsError(f"Required exclude file '{path}' not found!")
+
+        return path
+
+    @property
+    def exclude_direction(self):
         fn = f"{self.element}.{self.direction}.exclude"
         path = os.path.join(self.conf_dir, fn)
 
